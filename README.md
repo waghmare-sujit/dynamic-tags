@@ -1,6 +1,6 @@
 # Dynamic Tags
 
-<img src="https://img.shields.io/github/v/release/sujit-waghmare/dynamic-tags?color=blue&style=flat-square" /><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" /><br><img src="https://img.shields.io/github/release-date/sujit-waghmare/dynamic-tags?style=flat-square" />
+<img src="https://img.shields.io/github/v/release/waghmare-sujit/dynamic-tags?color=blue&style=flat-square" /><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" /><br><img src="https://img.shields.io/github/release-date/waghmare-sujit/dynamic-tags?style=flat-square" />
 <img src="https://img.shields.io/badge/Author-Waghmare-orange?style=flat-square" /><br>
 <img src="https://img.shields.io/badge/Plugin%20ID-dynamic--tags-lightgrey?style=flat-square" /><br><img src="https://img.shields.io/badge/Mobile%20Friendly-Yes-brightgreen?style=flat-square" />
 
@@ -8,7 +8,7 @@ Dynamically strips priority prefixes, formats multi-word tags, and customizes ba
 
 | Tag Showcase | Tag Nesting |
 | :--- | :--- |
-| ![Tag Showcase](https://github.com/sujit-waghmare/dynamic-tags/blob/48936e05a13990119345cc5c37dd75d71ad97ecc/assets/tags-showcase.gif) | ![Tag Nesting](https://github.com/sujit-waghmare/dynamic-tags/blob/48936e05a13990119345cc5c37dd75d71ad97ecc/assets/tags-nesting.gif) |
+| ![Tag Showcase](https://github.com/waghmare-sujit/dynamic-tags/blob/48936e05a13990119345cc5c37dd75d71ad97ecc/assets/tags-showcase.gif) | ![Tag Nesting](https://github.com/waghmare-sujit/dynamic-tags/blob/48936e05a13990119345cc5c37dd75d71ad97ecc/assets/tags-nesting.gif) |
 
 ---
 
