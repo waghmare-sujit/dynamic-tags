@@ -55,4 +55,4 @@ export function injectWebFonts(customFontUrl?: string): void {
   } else if (customLink) {
     customLink.remove();
   }
-}}
+}
