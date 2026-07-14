@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const newVersion = process.argv[2];
 if (!newVersion || !/^\d+\.\d+\.\d+$/.test(newVersion)) {
-  console.error("Usage: node version-bump.mjs <newVersion>  (e.g. 1.6.0)");
+  console.error("Usage: node version-bump.mjs <newVersion>  (e.g. 1.6.1)");
   process.exit(1);
 }
 

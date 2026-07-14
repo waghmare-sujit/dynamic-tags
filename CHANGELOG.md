@@ -4,6 +4,9 @@ All notable changes to the **Dynamic Tags** Obsidian plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > This is clone of my previous repo so date might not be same
 
+## [1.6.1] - 2026-05-29
+fixed native click-to-search bug by offloading string formatting to CSS pseudo-elements bug
+
 ## [1.6.0] — 2026-05-28
 
 ### Added new status tag `#Re-schedule` with color pill and inline icon.
@@ -73,7 +76,7 @@ Clicking any tag in the sidebar executes a native Obsidian global tag search, in
 - Support for nested priority tags (e.g. `#high/work`).
 - Dynamic string formatting (removed hyphens, injected spaces, title-cased words).
 
-## [1.0.0] — 2025-12-01
+## [1.0.0] — 2024-12-01
 
 ### Added
 - Initial release: base priority tags (`#high`, `#low`, `#mid`, `#medium`).
