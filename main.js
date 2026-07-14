@@ -64,15 +64,16 @@ class DynamicPriorityTags extends Plugin {
         this.injectWebFonts();
         this.updateStyle();
 
+        // ── BUG FIX: Inject formatted text into attribute, leave raw text alone ──
         this.registerMarkdownPostProcessor((element, context) => {
             const tags = element.querySelectorAll("a.tag");
             tags.forEach(tag => {
                 const priorityMatch = tag.innerText.match(/^#(High|Medium|Mid|Low|Pending|In-progress|Submitted|In-review|Success|Failed|Expired|Re-schedule)[\/\-](.+)$/i);
                 if (priorityMatch) {
-                    tag.innerText = formatTagString(priorityMatch[2]);
+                    tag.setAttribute('data-dynamic-text', formatTagString(priorityMatch[2]));
                 } else {
                     const rawText = tag.innerText.replace(/^#/, '');
-                    tag.innerText = formatTagString(rawText);
+                    tag.setAttribute('data-dynamic-text', formatTagString(rawText));
                 }
             });
         });
