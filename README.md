@@ -8,7 +8,7 @@ Dynamically strips priority prefixes, formats multi-word tags, and customizes ba
 
 | Tag Showcase | Tag Nesting |
 | :--- | :--- |
-| ![Tag Showcase](https://github.com/waghmare-sujit/dynamic-tags/blob/48936e05a13990119345cc5c37dd75d71ad97ecc/assets/tags-showcase.gif) | ![Tag Nesting](https://github.com/waghmare-sujit/dynamic-tags/blob/48936e05a13990119345cc5c37dd75d71ad97ecc/assets/tags-nesting.gif) |
+| ![Tag Showcase](https://github.com/waghmare-sujit/dynamic-tags/blob/6bf7126e5ecbb852bc6bc665b8270c88ebf930a0/assets/tags-showcase.gif) | ![Tag Nesting](https://github.com/waghmare-sujit/dynamic-tags/blob/6bf7126e5ecbb852bc6bc665b8270c88ebf930a0/assets/tag-nesting.gif) |
 
 ---
 
