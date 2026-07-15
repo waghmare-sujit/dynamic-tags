@@ -1,8 +1,13 @@
-# Dynamic Tags
+![logo](https://github.com/waghmare-sujit/dynamic-tags/blob/e31bcd666eac563c1eef9a06ff3487d012a19520/assets/dynamic-tags-logo.png)
 
-<img src="https://img.shields.io/github/v/release/waghmare-sujit/dynamic-tags?color=blue&style=flat-square" /><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" /><br><img src="https://img.shields.io/github/release-date/waghmare-sujit/dynamic-tags?style=flat-square" />
-<img src="https://img.shields.io/badge/Author-Waghmare-orange?style=flat-square" /><br>
-<img src="https://img.shields.io/badge/Plugin%20ID-dynamic--tags-lightgrey?style=flat-square" /><br><img src="https://img.shields.io/badge/Mobile%20Friendly-Yes-brightgreen?style=flat-square" />
+<div align="center">
+<img src="https://img.shields.io/github/v/release/waghmare-sujit/dynamic-tags?color=blue&style=flat-square" /> ‎ ‎
+<img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" /> ‎ ‎
+<img src="https://img.shields.io/github/release-date/waghmare-sujit/dynamic-tags?style=flat-square" /> ‎ ‎
+<img src="https://img.shields.io/badge/Author-Waghmare-orange?style=flat-square" /> ‎ ‎
+<img src="https://img.shields.io/badge/Plugin%20ID-dynamic--tags-lightgrey?style=flat-square" /> ‎ ‎
+<img src="https://img.shields.io/badge/Mobile%20Friendly-Yes-brightgreen?style=flat-square" /> ‎ ‎
+</div>
 
 Dynamically strips priority prefixes, formats multi-word tags, and customizes base tag styling for Obsidian.
 
@@ -115,32 +120,38 @@ These standard tags inherit your custom background color, text color, and font f
 ---
 
 ## Troubleshooting
-
-**My custom Google Font isn't working on mobile**
+<details>
+<summary><b>My custom Google Font isn't working on mobile</b></summary>
 Ensure you pasted the Google Fonts URL into the plugin settings. Web-safe fonts like Arial do not exist natively on Android. The plugin must inject the CSS link from Google Fonts to force the mobile app to display them.
-
-**Priority tags look messy in Source Mode**
-Source Mode disables the CodeMirror widget so your cursor doesn't break while editing raw text. Tags will display with their `#` prefix intact, but retain a faint background highlight for visual scanning.
-
-**I updated `main.js` but it's running the old code**
-Toggle the plugin **OFF → ON** in Settings → Community Plugins after replacing any file.
+</details>
+<details>
+<summary><b>Priority tags look messy in Source Mode</b></summary>
+Source Mode disables the CodeMirror widget so your cursor doesn't break while editing raw text. Tags will display with their # prefix intact, but retain a faint background highlight for visual scanning.
+</details>
+<details>
+<summary><b>I updated main.js but it's running the old code</b></summary>
+Toggle the plugin <b>OFF → ON</b> in Settings → Community Plugins after replacing any file.
+</details>
 
 ---
 
 ## FAQ
-
-**Q: Can I change the priority colors?**
-Yes, but you must manually edit the RGBA values inside `styles.css` under the "Colors and Icons" section. The settings tab background color only applies to standard tags.
-
-**Q: Does this break standard Obsidian search?**
-No. The plugin only alters the *visual output* on your screen using JavaScript widgets and CSS. The raw text inside your `.md` files remains completely untouched.
-
-**Q: Why do I see a flash of the old tag when switching modes?**
+<details>
+<summary><b>Can I change the priority colors?</b></summary>
+Yes, but you must manually edit the RGBA values inside styles.css under the "Colors and Icons" section. The settings tab background color only applies to standard tags.
+</details>
+<details>
+<summary><b>Does this break standard Obsidian search?</b></summary>
+No. The plugin only alters the <i>visual output</i> on your screen using JavaScript widgets and CSS. The raw text inside your .md files remains completely untouched.
+</details>
+<details>
+<summary><b>Why do I see a flash of the old tag when switching modes?</b></summary>
 CodeMirror takes a fraction of a millisecond to apply the visual widget when swapping from Reading View to Live Preview. This brief flash is a normal limitation of Obsidian's text engine.
+</details>
 
 ---
 
-## ☕ Support
+## Support
 Building and maintaining these tools takes significant time and energy. Your tips keep the caffeine flowing and helps me stay focused on delivering high-quality, reliable products for the community. 
 
 <p align="left">
