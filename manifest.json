@@ -1,9 +1,9 @@
 {
   "id": "dynamic-tags",
   "name": "Dynamic Tags",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "minAppVersion": "1.0.0",
-  "description": "Dynamically strips priority prefixes, formats multi-word tags, and customizes base tag styling. In v1.6.1 fixed native click-to-search bug by offloading string formatting to CSS pseudo-elements.",
+  "description": "Dynamically strips priority prefixes, formats multi-word tags, and customizes base tag styling. In v1.6.2 fixed DOM lifecycle bug causing empty tag pills on re-render.",
   "author": "Waghmare",
   "authorUrl": "https://github.com/waghmare-sujit",
   "fundingUrl": "https://paypal.me/waghmaresujit",
