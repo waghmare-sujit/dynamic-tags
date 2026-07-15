@@ -3,13 +3,13 @@
  * Bumps the version across manifest.json, package.json, and versions.json.
  *
  * Usage:  node version-bump.mjs <newVersion>
- * Example: node version-bump.mjs 1.6.0
+ * Example: node version-bump.mjs 1.6.2
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const newVersion = process.argv[2];
 if (!newVersion || !/^\d+\.\d+\.\d+$/.test(newVersion)) {
-  console.error("Usage: node version-bump.mjs <newVersion>  (e.g. 1.6.1)");
+  console.error("Usage: node version-bump.mjs <newVersion>  (e.g. 1.6.2)");
   process.exit(1);
 }
 

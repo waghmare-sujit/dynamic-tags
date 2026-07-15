@@ -1,6 +1,6 @@
 /* Dynamic Priority Tags - Plugin Stylesheet */
 
-/* 1. Universal Text Formatting (Applies to ALL tags) */
+/* 1. Universal Text Formatting */
 .tag, .is-live-preview .cm-hashtag-end {
     font-family: var(--dynamic-tag-font) !important;
     font-weight: var(--dynamic-tag-weight) !important;
@@ -8,21 +8,26 @@
     text-decoration: var(--dynamic-tag-decoration) !important;
 }
 
-/* 2. General Tag Custom Coloring (Excluded from Priority + Status Tags) */
+/* ── 2. CORE SEARCH FIX (Reading View) ── 
+   Hides the raw DOM text so Obsidian search works, overlays formatted text via attribute */
+a.tag[data-dynamic-text] {
+    font-size: 0 !important;
+}
+a.tag[data-dynamic-text]::after {
+    content: attr(data-dynamic-text);
+    font-size: var(--tag-size, 13px);
+}
+
+/* 3. General Tag Custom Coloring (Excluded from Priority + Status Tags) */
 .tag:not([href^="#High" i]):not([href^="#Medium" i]):not([href^="#Mid" i]):not([href^="#Low" i]):not([href^="#Pending" i]):not([href^="#In-progress" i]):not([href^="#Submitted" i]):not([href^="#In-review" i]):not([href^="#Success" i]):not([href^="#Failed" i]):not([href^="#Expired" i]):not([href^="#Re-schedule" i]),
 .is-live-preview .cm-hashtag-end:not([class*="cm-tag-high" i]):not([class*="cm-tag-medium" i]):not([class*="cm-tag-mid" i]):not([class*="cm-tag-low" i]):not([class*="cm-tag-pending" i]):not([class*="cm-tag-in-progress" i]):not([class*="cm-tag-submitted" i]):not([class*="cm-tag-in-review" i]):not([class*="cm-tag-success" i]):not([class*="cm-tag-failed" i]):not([class*="cm-tag-expired" i]):not([class*="cm-tag-re-schedule" i]) {
     background-color: var(--dynamic-tag-bg) !important;
     color: var(--dynamic-tag-color) !important;
 }
 
-/* 3. Priority Tags Core Base */
-.tag[href="#High" i],.tag[href="#Medium" i],.tag[href="#Mid" i],.tag[href="#Low" i]{font-size:0 !important;}
-.tag[href="#High" i]::after{content:"High";font-size:13px;}
-.tag[href="#Medium" i]::after,.tag[href="#Mid" i]::after{content:"Medium";font-size:13px;}
-.tag[href="#Low" i]::after{content:"Low";font-size:13px;}
+/* 4. Priority Tags Core Structure */
 .is-live-preview .cm-hashtag-begin[class*="cm-tag-high" i],.is-live-preview .cm-hashtag-begin[class*="cm-tag-medium" i],.is-live-preview .cm-hashtag-begin[class*="cm-tag-mid" i],.is-live-preview .cm-hashtag-begin[class*="cm-tag-low" i]{display:none !important;}
 
-/* Priority Tags Structure */
 .tag[href^="#High" i],.tag[href^="#Medium" i],.tag[href^="#Mid" i],.tag[href^="#Low" i],
 .is-live-preview .cm-hashtag-end[class*="cm-tag-high" i],.is-live-preview .cm-hashtag-end[class*="cm-tag-medium" i],.is-live-preview .cm-hashtag-end[class*="cm-tag-mid" i],.is-live-preview .cm-hashtag-end[class*="cm-tag-low" i]{
     display:inline-flex;align-items:center;color:#fff !important;border-radius:6px;padding:2px 10px 2px 8px;border:none;letter-spacing:.02em;text-transform:capitalize;
@@ -40,19 +45,8 @@
 
 
 /* ============================================================
-   4. Status Tags Base
+   5. Status Tags Structure 
    ============================================================ */
-
-/* Hide raw text for solo base tags in Reading View */
-.tag[href="#Pending" i], .tag[href="#In-progress" i], .tag[href="#Submitted" i], .tag[href="#In-review" i], .tag[href="#Success" i], .tag[href="#Failed" i], .tag[href="#Expired" i], .tag[href="#Re-schedule" i] {font-size: 0 !important;}
-.tag[href="#Pending" i]::after {content: "Pending"; font-size: 13px;}
-.tag[href="#In-progress" i]::after {content: "In Progress"; font-size: 13px;}
-.tag[href="#Submitted" i]::after {content: "Submitted"; font-size: 13px;}
-.tag[href="#In-review" i]::after {content: "In Review"; font-size: 13px;}
-.tag[href="#Success" i]::after {content: "Success"; font-size: 13px;}
-.tag[href="#Failed" i]::after {content: "Failed"; font-size: 13px;}
-.tag[href="#Expired" i]::after {content: "Expired"; font-size: 13px;}
-.tag[href="#Re-schedule" i]::after {content: "Re-schedule"; font-size: 13px;}
 
 /* Hide the # prefix in Live Preview */
 .is-live-preview .cm-hashtag-begin[class*="cm-tag-pending" i],
@@ -78,7 +72,6 @@
   color: #ffffff !important;
   border-radius: 10px;
   padding: 3px 12px 3px 9px;
-  font-size: 0.82em;
   border: none;
   letter-spacing: 0.02em;
   text-transform: capitalize;

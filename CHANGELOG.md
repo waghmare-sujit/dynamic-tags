@@ -4,6 +4,9 @@ All notable changes to the **Dynamic Tags** Obsidian plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 > This is clone of my previous repo so date might not be same
 
+## [1.6.2] - 2026-05-30
+Fixed DOM lifecycle bug causing empty tag pills on re-render.
+
 ## [1.6.1] - 2026-05-29
 fixed native click-to-search bug by offloading string formatting to CSS pseudo-elements bug
 
