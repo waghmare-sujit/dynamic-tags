@@ -64,15 +64,29 @@ class DynamicPriorityTags extends Plugin {
         this.injectWebFonts();
         this.updateStyle();
 
-        // ── BUG FIX: Inject formatted text into attribute, leave raw text alone ──
+        // ── BULLETPROOF FIX: Read directly from href to bypass DOM mutations ──
         this.registerMarkdownPostProcessor((element, context) => {
             const tags = element.querySelectorAll("a.tag");
             tags.forEach(tag => {
-                const priorityMatch = tag.innerText.match(/^#(High|Medium|Mid|Low|Pending|In-progress|Submitted|In-review|Success|Failed|Expired|Re-schedule)[\/\-](.+)$/i);
+                // The href attribute ALWAYS holds the pure tag string (e.g. "#High/Work")
+                let tagRef = tag.getAttribute("href");
+                
+                // Fallback just in case
+                if (!tagRef) {
+                    tagRef = tag.textContent || "";
+                }
+
+                // Decode URL-encoded characters
+                try {
+                    tagRef = decodeURIComponent(tagRef);
+                } catch (e) {}
+
+                const priorityMatch = tagRef.match(/^#(High|Medium|Mid|Low|Pending|In-progress|Submitted|In-review|Success|Failed|Expired|Re-schedule)[\/\-](.+)$/i);
+                
                 if (priorityMatch) {
                     tag.setAttribute('data-dynamic-text', formatTagString(priorityMatch[2]));
                 } else {
-                    const rawText = tag.innerText.replace(/^#/, '');
+                    const rawText = tagRef.replace(/^#/, '');
                     tag.setAttribute('data-dynamic-text', formatTagString(rawText));
                 }
             });
@@ -120,6 +134,9 @@ class DynamicPriorityTags extends Plugin {
         body.setProperty('--dynamic-tag-weight', this.settings.isBold ? 'bold' : 'normal');
         body.setProperty('--dynamic-tag-style', this.settings.isItalic ? 'italic' : 'normal');
         body.setProperty('--dynamic-tag-decoration', this.settings.isUnderline ? 'underline' : 'none');
+        
+        // Safety injection: Guarantees visibility even if a custom theme deletes the --tag-size variable
+        body.setProperty('--tag-size', '13px');
     }
 }
 
