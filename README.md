@@ -46,7 +46,8 @@ YourVault/
 
 **Step 5** — Find **Dynamic Tags** in the installed plugins list and toggle it **ON**.
 
-> [!warning] After updating `main.js` or `styles.css`, always **toggle the plugin OFF → ON** in settings. Obsidian caches the old version in memory until you do this.
+> [!warning]
+> After updating `main.js` or `styles.css`, always **toggle the plugin OFF → ON** in settings. Obsidian caches the old version in memory until you do this.
 
 ---
 
@@ -94,6 +95,7 @@ Use a forward slash `/` to categorize.
 - `#High/Work` → renders as **Work** in a red priority pill
 - `#Mid/Physics` → renders inside a purple priority pill
 
+> [!warning]
 > The priority level (`#High`, `#Medium`, `#Low`) **must** be the first word. Case does not matter — `#high/work` works perfectly, but `#Work/high` does not.
 
 ### Status Tags
