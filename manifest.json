@@ -1,9 +1,9 @@
 {
   "id": "dynamic-tags",
   "name": "Dynamic Tags",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "minAppVersion": "1.0.0",
-  "description": "Dynamically strips priority prefixes, formats multi-word tags, and customizes base tag styling. In v1.6.2 fixed DOM lifecycle bug causing empty tag pills on re-render.",
+  "description": "Dynamically strips priority prefixes, formats multi-word tags, and customizes base tag styling. In v1.7.0 added a custom right-sidebar View to display current note tags and dynamically calculate related vault tags.",
   "author": "Waghmare",
   "authorUrl": "https://github.com/waghmare-sujit",
   "fundingUrl": "https://paypal.me/waghmaresujit",
