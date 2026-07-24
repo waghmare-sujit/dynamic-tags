@@ -1,5 +1,7 @@
-const { Plugin, PluginSettingTab, Setting, editorLivePreviewField } = require('obsidian');
+const { Plugin, PluginSettingTab, Setting, editorLivePreviewField, ItemView, WorkspaceLeaf } = require('obsidian');
 const { Decoration, ViewPlugin, MatchDecorator } = require('@codemirror/view');
+
+const VIEW_TYPE_DYNAMIC_TAGS = "dynamic-tags-sidebar";
 
 const DEFAULT_SETTINGS = {
     defaultTagColor: 'rgba(255, 255, 255, 0.1)',
@@ -56,30 +58,160 @@ const livePreviewPlugin = ViewPlugin.fromClass(class {
     }
 }, { decorations: v => v.decorations });
 
+
+// ── 1. CUSTOM SIDEBAR VIEW ──
+class DynamicTagsView extends ItemView {
+    constructor(leaf, plugin) {
+        super(leaf);
+        this.plugin = plugin;
+    }
+
+    getViewType() {
+        return VIEW_TYPE_DYNAMIC_TAGS;
+    }
+
+    getDisplayText() {
+        return "Dynamic Tags";
+    }
+
+    getIcon() {
+        return "tags";
+    }
+
+    async onOpen() {
+        this.updateView();
+        
+        // Listeners to update sidebar when switching notes or modifying metadata
+        this.registerEvent(this.app.workspace.on('active-leaf-change', () => this.updateView()));
+        this.registerEvent(this.app.metadataCache.on('changed', () => this.updateView()));
+    }
+
+    async onClose() {
+        // Cleanup if necessary
+    }
+
+    updateView() {
+        const container = this.containerEl.children[1];
+        container.empty();
+
+        const file = this.app.workspace.getActiveFile();
+        if (!file) {
+            container.createEl("p", { text: "No active file.", cls: "text-muted" });
+            return;
+        }
+
+        // Fetch tags from active file cache
+        const cache = this.app.metadataCache.getFileCache(file);
+        let currentTags = [];
+        if (cache && cache.tags) {
+            currentTags = cache.tags.map(t => t.tag);
+        } else if (cache && cache.frontmatter && cache.frontmatter.tags) {
+            // Also grab YAML frontmatter tags
+            const fmTags = Array.isArray(cache.frontmatter.tags) ? cache.frontmatter.tags : [cache.frontmatter.tags];
+            currentTags = fmTags.map(t => String(t).startsWith('#') ? String(t) : `#${t}`);
+        }
+        
+        const uniqueCurrentTags = [...new Set(currentTags)];
+
+        // ── SECTION 1: TAGS IN CURRENT NOTE ──
+        container.createEl("h4", { text: "Tags in Note", cls: "dynamic-sidebar-heading" });
+        const currentTagsDiv = container.createEl("div", { cls: "dynamic-tags-sidebar-section" });
+        
+        if (uniqueCurrentTags.length === 0) {
+            currentTagsDiv.createEl("span", { text: "No tags found.", cls: "text-muted" });
+        } else {
+            this.renderTagList(currentTagsDiv, uniqueCurrentTags);
+        }
+
+        container.createEl("hr", { cls: "dynamic-sidebar-divider" });
+
+        // ── SECTION 2: RELATED TAGS ──
+        container.createEl("h4", { text: "Related Tags", cls: "dynamic-sidebar-heading" });
+        const relatedTagsDiv = container.createEl("div", { cls: "dynamic-tags-sidebar-section" });
+
+        if (uniqueCurrentTags.length === 0) {
+            relatedTagsDiv.createEl("span", { text: "Add tags to see relations.", cls: "text-muted" });
+        } else {
+            // Get base prefixes (e.g., "#Success" from "#Success/To-Do")
+            const basePrefixes = uniqueCurrentTags.map(t => t.split(/[\/\-]/)[0].toLowerCase());
+            
+            // Get all tags in the entire vault
+            const allTagsRecord = this.app.metadataCache.getTags();
+            const allVaultTags = Object.keys(allTagsRecord);
+
+            // Filter for tags that share the base prefix but aren't in the current note
+            const relatedTags = allVaultTags.filter(vaultTag => {
+                const vaultTagPrefix = vaultTag.split(/[\/\-]/)[0].toLowerCase();
+                return basePrefixes.includes(vaultTagPrefix) && !uniqueCurrentTags.includes(vaultTag);
+            });
+
+            if (relatedTags.length === 0) {
+                relatedTagsDiv.createEl("span", { text: "No related tags in vault.", cls: "text-muted" });
+            } else {
+                this.renderTagList(relatedTagsDiv, relatedTags);
+            }
+        }
+    }
+
+    // Helper function to build the tag UI identically to Reading View
+    renderTagList(container, tagArray) {
+        tagArray.forEach(tagString => {
+            const tagEl = container.createEl("a", { cls: "tag", text: tagString, href: tagString });
+            
+            // Replicate the formatting logic
+            const priorityMatch = tagString.match(/^#(High|Medium|Mid|Low|Pending|In-progress|Submitted|In-review|Success|Failed|Expired|Re-schedule)[\/\-](.+)$/i);
+            if (priorityMatch) {
+                tagEl.setAttribute('data-dynamic-text', formatTagString(priorityMatch[2]));
+            } else {
+                const rawText = tagString.replace(/^#/, '');
+                tagEl.setAttribute('data-dynamic-text', formatTagString(rawText));
+            }
+
+            // Route clicks to native Obsidian global search
+            tagEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Accessing internal global search plugin API
+                const searchPlugin = this.app.internalPlugins.getPluginById('global-search');
+                if (searchPlugin && searchPlugin.instance) {
+                    searchPlugin.instance.openGlobalSearch(`tag:${tagString}`);
+                }
+            });
+        });
+    }
+}
+
+
+// ── 2. MAIN PLUGIN CLASS ──
 class DynamicPriorityTags extends Plugin {
     async onload() {
         await this.loadSettings();
         this.addSettingTab(new DynamicTagSettingTab(this.app, this));
         
+        // Register the new custom View
+        this.registerView(VIEW_TYPE_DYNAMIC_TAGS, (leaf) => new DynamicTagsView(leaf, this));
+
+        // Add Ribbon Icon and Command to toggle the sidebar
+        this.addRibbonIcon('tags', 'Dynamic Tags Sidebar', () => {
+            this.activateSidebar();
+        });
+
+        this.addCommand({
+            id: 'open-dynamic-tags-sidebar',
+            name: 'Open Dynamic Tags Sidebar',
+            callback: () => {
+                this.activateSidebar();
+            }
+        });
+
         this.injectWebFonts();
         this.updateStyle();
 
-        // ── BULLETPROOF FIX: Read directly from href to bypass DOM mutations ──
         this.registerMarkdownPostProcessor((element, context) => {
             const tags = element.querySelectorAll("a.tag");
             tags.forEach(tag => {
-                // The href attribute ALWAYS holds the pure tag string (e.g. "#High/Work")
                 let tagRef = tag.getAttribute("href");
-                
-                // Fallback just in case
-                if (!tagRef) {
-                    tagRef = tag.textContent || "";
-                }
-
-                // Decode URL-encoded characters
-                try {
-                    tagRef = decodeURIComponent(tagRef);
-                } catch (e) {}
+                if (!tagRef) tagRef = tag.textContent || "";
+                try { tagRef = decodeURIComponent(tagRef); } catch (e) {}
 
                 const priorityMatch = tagRef.match(/^#(High|Medium|Mid|Low|Pending|In-progress|Submitted|In-review|Success|Failed|Expired|Re-schedule)[\/\-](.+)$/i);
                 
@@ -93,6 +225,23 @@ class DynamicPriorityTags extends Plugin {
         });
 
         this.registerEditorExtension(livePreviewPlugin);
+    }
+
+    onunload() {
+        // Clean up the workspace leaf on plugin unload
+        this.app.workspace.detachLeavesOfType(VIEW_TYPE_DYNAMIC_TAGS);
+    }
+
+    async activateSidebar() {
+        const { workspace } = this.app;
+        
+        let leaf = workspace.getLeavesOfType(VIEW_TYPE_DYNAMIC_TAGS)[0];
+        if (!leaf) {
+            const rightLeaf = workspace.getRightLeaf(false);
+            await rightLeaf.setViewState({ type: VIEW_TYPE_DYNAMIC_TAGS, active: true });
+            leaf = rightLeaf;
+        }
+        workspace.revealLeaf(leaf);
     }
 
     async loadSettings() {
@@ -134,8 +283,6 @@ class DynamicPriorityTags extends Plugin {
         body.setProperty('--dynamic-tag-weight', this.settings.isBold ? 'bold' : 'normal');
         body.setProperty('--dynamic-tag-style', this.settings.isItalic ? 'italic' : 'normal');
         body.setProperty('--dynamic-tag-decoration', this.settings.isUnderline ? 'underline' : 'none');
-        
-        // Safety injection: Guarantees visibility even if a custom theme deletes the --tag-size variable
         body.setProperty('--tag-size', '13px');
     }
 }
