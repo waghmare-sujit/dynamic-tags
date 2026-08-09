@@ -12,7 +12,7 @@ export function extractCleanUrl(input: string): string {
     /(https:\/\/fonts\.googleapis\.com\/css2\?[^"'\s\)]+)/
   );
   if (css2Match) {
-    return css2Match[1].replace(/&/g, "&");
+    return css2Match[1].replace(/&amp;/g, "&");
   }
   return input.trim();
 }
