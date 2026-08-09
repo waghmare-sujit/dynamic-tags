@@ -185,18 +185,66 @@ a.tag[data-dynamic-text]::after {
 .tag[href^="#Re-schedule" i]::before, .is-live-preview .cm-hashtag-end[class*="cm-tag-re-schedule" i]::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23f97316' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 10h1v4'/%3E%3Cpath d='m11 14 1.5-1.5'/%3E%3Cpath d='m11 14-1.5-1.5'/%3E%3Cpath d='M16 2v4'/%3E%3Cpath d='M3 10h18'/%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M21 10V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7'/%3E%3Cpath d='M22 22v-4h-4'/%3E%3Cpath d='M22 18a5 5 0 1 0-4.5 7.5'/%3E%3C/svg%3E");
 }
+
 /* ============================================================
-   6. Custom Sidebar View Styling
+   6. Custom Sidebar View Styling (Updated for v1.7.1)
    ============================================================ */
 
+/* Main collapsible headings ("Tags in Note", "Related Tags") */
 .dynamic-sidebar-heading {
     margin-top: 10px;
     margin-bottom: 12px;
     font-size: 1.1em;
     font-weight: 600;
     color: var(--text-normal);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
 }
 
+.dynamic-sidebar-heading::after {
+    content: "▼";
+    font-size: 0.7em;
+    color: var(--text-muted);
+    transition: transform 0.2s ease-in-out;
+}
+
+.dynamic-sidebar-heading.collapsed::after {
+    transform: rotate(-90deg);
+}
+
+/* Secondary collapsible headings (File names in Related Tags) */
+.related-note-group {
+    margin-bottom: 12px;
+    padding-left: 5px;
+    border-left: 2px solid var(--background-modifier-border);
+}
+
+.related-note-title {
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    user-select: none;
+}
+
+.related-note-title::before {
+    content: "▼";
+    font-size: 0.7em;
+    transition: transform 0.2s ease-in-out;
+}
+
+.related-note-title.collapsed::before {
+    transform: rotate(-90deg);
+}
+
+/* Container behaviors */
 .dynamic-sidebar-divider {
     margin: 20px 0;
     border: none;
@@ -208,6 +256,11 @@ a.tag[data-dynamic-text]::after {
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.dynamic-tags-sidebar-section.collapsed {
+    display: none;
 }
 
 .dynamic-tags-sidebar-section .text-muted {
