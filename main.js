@@ -1,4 +1,4 @@
-const { Plugin, PluginSettingTab, Setting, editorLivePreviewField, ItemView, WorkspaceLeaf } = require('obsidian');
+const { Plugin, PluginSettingTab, Setting, editorLivePreviewField, ItemView } = require('obsidian');
 const { Decoration, ViewPlugin, MatchDecorator } = require('@codemirror/view');
 
 const VIEW_TYPE_DYNAMIC_TAGS = "dynamic-tags-sidebar";
@@ -11,7 +11,8 @@ const DEFAULT_SETTINGS = {
     customFonts: [],
     isBold: false,
     isItalic: false,
-    isUnderline: false
+    isUnderline: false,
+    strictRelatedTags: false // Toggles between Base Match and Exact Nesting Match
 };
 
 function formatTagString(str) {
@@ -81,32 +82,41 @@ class DynamicTagsView extends ItemView {
     async onOpen() {
         this.updateView();
         
-        // Listeners to update sidebar when switching notes or modifying metadata
         this.registerEvent(this.app.workspace.on('active-leaf-change', () => this.updateView()));
         this.registerEvent(this.app.metadataCache.on('changed', () => this.updateView()));
     }
 
-    async onClose() {
-        // Cleanup if necessary
+    async onClose() {}
+
+    createCollapsibleHeader(container, titleText, isSubHeader = false) {
+        const headerCls = isSubHeader ? "related-note-title" : "dynamic-sidebar-heading";
+        const header = container.createEl(isSubHeader ? "div" : "h4", { text: titleText, cls: headerCls });
+        const contentDiv = container.createEl("div", { cls: "dynamic-tags-sidebar-section" });
+        
+        header.addEventListener("click", () => {
+            header.classList.toggle("collapsed");
+            contentDiv.classList.toggle("collapsed");
+        });
+        
+        return contentDiv;
     }
 
     updateView() {
         const container = this.containerEl.children[1];
         container.empty();
 
-        const file = this.app.workspace.getActiveFile();
-        if (!file) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) {
             container.createEl("p", { text: "No active file.", cls: "text-muted" });
             return;
         }
 
         // Fetch tags from active file cache
-        const cache = this.app.metadataCache.getFileCache(file);
+        const cache = this.app.metadataCache.getFileCache(activeFile);
         let currentTags = [];
         if (cache && cache.tags) {
             currentTags = cache.tags.map(t => t.tag);
         } else if (cache && cache.frontmatter && cache.frontmatter.tags) {
-            // Also grab YAML frontmatter tags
             const fmTags = Array.isArray(cache.frontmatter.tags) ? cache.frontmatter.tags : [cache.frontmatter.tags];
             currentTags = fmTags.map(t => String(t).startsWith('#') ? String(t) : `#${t}`);
         }
@@ -114,8 +124,7 @@ class DynamicTagsView extends ItemView {
         const uniqueCurrentTags = [...new Set(currentTags)];
 
         // ── SECTION 1: TAGS IN CURRENT NOTE ──
-        container.createEl("h4", { text: "Tags in Note", cls: "dynamic-sidebar-heading" });
-        const currentTagsDiv = container.createEl("div", { cls: "dynamic-tags-sidebar-section" });
+        const currentTagsDiv = this.createCollapsibleHeader(container, "Tags in Note");
         
         if (uniqueCurrentTags.length === 0) {
             currentTagsDiv.createEl("span", { text: "No tags found.", cls: "text-muted" });
@@ -125,40 +134,69 @@ class DynamicTagsView extends ItemView {
 
         container.createEl("hr", { cls: "dynamic-sidebar-divider" });
 
-        // ── SECTION 2: RELATED TAGS ──
-        container.createEl("h4", { text: "Related Tags", cls: "dynamic-sidebar-heading" });
-        const relatedTagsDiv = container.createEl("div", { cls: "dynamic-tags-sidebar-section" });
+        // ── SECTION 2: RELATED TAGS BY NOTE ──
+        const relatedTagsDiv = this.createCollapsibleHeader(container, "Related Tags");
 
         if (uniqueCurrentTags.length === 0) {
             relatedTagsDiv.createEl("span", { text: "Add tags to see relations.", cls: "text-muted" });
-        } else {
-            // Get base prefixes (e.g., "#Success" from "#Success/To-Do")
-            const basePrefixes = uniqueCurrentTags.map(t => t.split(/[\/\-]/)[0].toLowerCase());
-            
-            // Get all tags in the entire vault
-            const allTagsRecord = this.app.metadataCache.getTags();
-            const allVaultTags = Object.keys(allTagsRecord);
+            return;
+        }
 
-            // Filter for tags that share the base prefix but aren't in the current note
-            const relatedTags = allVaultTags.filter(vaultTag => {
-                const vaultTagPrefix = vaultTag.split(/[\/\-]/)[0].toLowerCase();
-                return basePrefixes.includes(vaultTagPrefix) && !uniqueCurrentTags.includes(vaultTag);
+        const strictMode = this.plugin.settings.strictRelatedTags;
+        const validPrefixes = uniqueCurrentTags.map(t => {
+            return strictMode ? t.toLowerCase() : t.split(/[\/\-]/)[0].toLowerCase();
+        });
+
+        const allFiles = this.app.vault.getMarkdownFiles();
+        let foundRelated = false;
+
+        // Group tags by file
+        allFiles.forEach(file => {
+            if (file.path === activeFile.path) return;
+            
+            const fileCache = this.app.metadataCache.getFileCache(file);
+            if (!fileCache) return;
+            
+            let fileTags = [];
+            if (fileCache.tags) fileTags.push(...fileCache.tags.map(t => t.tag));
+            if (fileCache.frontmatter && fileCache.frontmatter.tags) {
+                const fmTags = Array.isArray(fileCache.frontmatter.tags) ? fileCache.frontmatter.tags : [fileCache.frontmatter.tags];
+                fileTags.push(...fmTags.map(t => String(t).startsWith('#') ? String(t) : `#${t}`));
+            }
+
+            fileTags = [...new Set(fileTags)];
+
+            // Filter for matching tags not present in the current note
+            const matchedTags = fileTags.filter(tag => {
+                const tagLower = tag.toLowerCase();
+                const tagBase = tag.split(/[\/\-]/)[0].toLowerCase();
+                
+                // Strict mode: tag must start with exact prefix (e.g. #High/Math matches #High/Math/Algebra)
+                // Broad mode: tag just needs to share the base prefix (e.g. #High matches #High/Chemistry)
+                const isRelated = strictMode 
+                    ? validPrefixes.some(p => tagLower.startsWith(p))
+                    : validPrefixes.includes(tagBase);
+                    
+                return isRelated && !uniqueCurrentTags.includes(tag);
             });
 
-            if (relatedTags.length === 0) {
-                relatedTagsDiv.createEl("span", { text: "No related tags in vault.", cls: "text-muted" });
-            } else {
-                this.renderTagList(relatedTagsDiv, relatedTags);
+            if (matchedTags.length > 0) {
+                foundRelated = true;
+                const noteGroupDiv = relatedTagsDiv.createEl("div", { cls: "related-note-group" });
+                const noteTagsContainer = this.createCollapsibleHeader(noteGroupDiv, file.basename, true);
+                this.renderTagList(noteTagsContainer, matchedTags);
             }
+        });
+
+        if (!foundRelated) {
+            relatedTagsDiv.createEl("span", { text: "No related tags in vault.", cls: "text-muted" });
         }
     }
 
-    // Helper function to build the tag UI identically to Reading View
     renderTagList(container, tagArray) {
         tagArray.forEach(tagString => {
             const tagEl = container.createEl("a", { cls: "tag", text: tagString, href: tagString });
             
-            // Replicate the formatting logic
             const priorityMatch = tagString.match(/^#(High|Medium|Mid|Low|Pending|In-progress|Submitted|In-review|Success|Failed|Expired|Re-schedule)[\/\-](.+)$/i);
             if (priorityMatch) {
                 tagEl.setAttribute('data-dynamic-text', formatTagString(priorityMatch[2]));
@@ -167,10 +205,8 @@ class DynamicTagsView extends ItemView {
                 tagEl.setAttribute('data-dynamic-text', formatTagString(rawText));
             }
 
-            // Route clicks to native Obsidian global search
             tagEl.addEventListener('click', (e) => {
                 e.preventDefault();
-                // Accessing internal global search plugin API
                 const searchPlugin = this.app.internalPlugins.getPluginById('global-search');
                 if (searchPlugin && searchPlugin.instance) {
                     searchPlugin.instance.openGlobalSearch(`tag:${tagString}`);
@@ -187,10 +223,8 @@ class DynamicPriorityTags extends Plugin {
         await this.loadSettings();
         this.addSettingTab(new DynamicTagSettingTab(this.app, this));
         
-        // Register the new custom View
         this.registerView(VIEW_TYPE_DYNAMIC_TAGS, (leaf) => new DynamicTagsView(leaf, this));
 
-        // Add Ribbon Icon and Command to toggle the sidebar
         this.addRibbonIcon('tags', 'Dynamic Tags Sidebar', () => {
             this.activateSidebar();
         });
@@ -228,7 +262,6 @@ class DynamicPriorityTags extends Plugin {
     }
 
     onunload() {
-        // Clean up the workspace leaf on plugin unload
         this.app.workspace.detachLeavesOfType(VIEW_TYPE_DYNAMIC_TAGS);
     }
 
@@ -320,6 +353,20 @@ class DynamicTagSettingTab extends PluginSettingTab {
                     this.plugin.settings.textColor = value;
                     await this.plugin.saveSettings();
                     this.plugin.updateStyle();
+                }));
+
+        new Setting(containerEl)
+            .setName('Strict Related Tags Matching')
+            .setDesc('When enabled, related tags must share the exact nesting path (e.g. #High/Math matches #High/Math/Algebra). When disabled, any tag sharing the base word (e.g. #High matches #High/Chemistry) is shown.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.strictRelatedTags)
+                .onChange(async (value) => {
+                    this.plugin.settings.strictRelatedTags = value;
+                    await this.plugin.saveSettings();
+                    // Force Sidebar Refresh
+                    this.plugin.app.workspace.getLeavesOfType(VIEW_TYPE_DYNAMIC_TAGS).forEach(leaf => {
+                        if (leaf.view instanceof DynamicTagsView) leaf.view.updateView();
+                    });
                 }));
 
         new Setting(containerEl)

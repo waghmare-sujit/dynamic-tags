@@ -1,10 +1,12 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type DynamicTags from "./main";
+import { VIEW_TYPE_DYNAMIC_TAGS, DynamicTagsView } from "./main";
 import {
   extractCleanUrl,
   extractGoogleFonts,
   CustomFont,
-} from "./utils/font-extractor";
+  injectWebFonts
+} from "./font-extractor";
 
 export interface DynamicTagSettings {
   defaultTagColor: string;
@@ -15,6 +17,7 @@ export interface DynamicTagSettings {
   isBold: boolean;
   isItalic: boolean;
   isUnderline: boolean;
+  strictRelatedTags: boolean;
 }
 
 export const DEFAULT_SETTINGS: DynamicTagSettings = {
@@ -26,6 +29,7 @@ export const DEFAULT_SETTINGS: DynamicTagSettings = {
   isBold: false,
   isItalic: false,
   isUnderline: false,
+  strictRelatedTags: false
 };
 
 const BUILT_IN_FONTS = [
@@ -81,6 +85,20 @@ export class DynamicTagSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName('Strict Related Tags Matching')
+      .setDesc('When enabled, related tags must share the exact nesting path (e.g. #High/Math matches #High/Math/Algebra). When disabled, any tag sharing the base word (e.g. #High matches #High/Chemistry) is shown.')
+      .addToggle(toggle => toggle
+          .setValue(this.plugin.settings.strictRelatedTags)
+          .onChange(async (value) => {
+              this.plugin.settings.strictRelatedTags = value;
+              await this.plugin.saveSettings();
+              this.plugin.app.workspace.getLeavesOfType(VIEW_TYPE_DYNAMIC_TAGS).forEach(leaf => {
+                  if (leaf.view instanceof DynamicTagsView) leaf.view.updateView();
+              });
+          })
+      );
+
+    new Setting(containerEl)
       .setName("Custom Google Fonts URL")
       .setDesc(
         "Paste the full HTML embed snippet or raw URL. The plugin will automatically extract the correct link."
@@ -96,7 +114,8 @@ export class DynamicTagSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
             injectWebFontsRefresh(this.plugin);
             if (value !== cleanUrl || this.plugin.settings.customFonts.length > 0) {
-              this.display();            }
+              this.display();            
+            }
           })
       );
 
@@ -145,7 +164,8 @@ export class DynamicTagSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.isItalic = value;
             await this.plugin.saveSettings();
-            this.plugin.updateStyle();          })
+            this.plugin.updateStyle();          
+          })
       );
 
     new Setting(containerEl)
@@ -194,7 +214,8 @@ function injectWebFontsRefresh(plugin: DynamicTags): void {
   const customLink = document.getElementById(
     "dynamic-tags-custom-fonts"
   ) as HTMLLinkElement | null;
-  if (plugin.settings.customFontUrl) {    if (customLink) {
+  if (plugin.settings.customFontUrl) {    
+    if (customLink) {
       customLink.href = plugin.settings.customFontUrl;
     } else {
       injectWebFonts(plugin.settings.customFontUrl);
