@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS = {
     isBold: false,
     isItalic: false,
     isUnderline: false,
-    strictRelatedTags: false // Toggles between Base Match and Exact Nesting Match
+    strictRelatedTags: false 
 };
 
 function formatTagString(str) {
@@ -65,6 +65,7 @@ class DynamicTagsView extends ItemView {
     constructor(leaf, plugin) {
         super(leaf);
         this.plugin = plugin;
+        this.collapsedStates = new Set(); // ── BUG FIX: Memory cache for UI states ──
     }
 
     getViewType() {
@@ -82,7 +83,8 @@ class DynamicTagsView extends ItemView {
     async onOpen() {
         this.updateView();
         
-        this.registerEvent(this.app.workspace.on('active-leaf-change', () => this.updateView()));
+        // ── BUG FIX: Use 'file-open' instead of 'active-leaf-change' to prevent click-focus loops ──
+        this.registerEvent(this.app.workspace.on('file-open', () => this.updateView()));
         this.registerEvent(this.app.metadataCache.on('changed', () => this.updateView()));
     }
 
@@ -93,9 +95,23 @@ class DynamicTagsView extends ItemView {
         const header = container.createEl(isSubHeader ? "div" : "h4", { text: titleText, cls: headerCls });
         const contentDiv = container.createEl("div", { cls: "dynamic-tags-sidebar-section" });
         
+        // Check memory cache to see if this specific menu was previously collapsed
+        const stateKey = isSubHeader ? `sub-${titleText}` : `main-${titleText}`;
+        if (this.collapsedStates.has(stateKey)) {
+            header.classList.add("collapsed");
+            contentDiv.classList.add("collapsed");
+        }
+        
         header.addEventListener("click", () => {
-            header.classList.toggle("collapsed");
+            const isCollapsed = header.classList.toggle("collapsed");
             contentDiv.classList.toggle("collapsed");
+            
+            // Save state to memory cache
+            if (isCollapsed) {
+                this.collapsedStates.add(stateKey);
+            } else {
+                this.collapsedStates.delete(stateKey);
+            }
         });
         
         return contentDiv;
@@ -111,7 +127,6 @@ class DynamicTagsView extends ItemView {
             return;
         }
 
-        // Fetch tags from active file cache
         const cache = this.app.metadataCache.getFileCache(activeFile);
         let currentTags = [];
         if (cache && cache.tags) {
@@ -150,7 +165,6 @@ class DynamicTagsView extends ItemView {
         const allFiles = this.app.vault.getMarkdownFiles();
         let foundRelated = false;
 
-        // Group tags by file
         allFiles.forEach(file => {
             if (file.path === activeFile.path) return;
             
@@ -166,13 +180,10 @@ class DynamicTagsView extends ItemView {
 
             fileTags = [...new Set(fileTags)];
 
-            // Filter for matching tags not present in the current note
             const matchedTags = fileTags.filter(tag => {
                 const tagLower = tag.toLowerCase();
                 const tagBase = tag.split(/[\/\-]/)[0].toLowerCase();
                 
-                // Strict mode: tag must start with exact prefix (e.g. #High/Math matches #High/Math/Algebra)
-                // Broad mode: tag just needs to share the base prefix (e.g. #High matches #High/Chemistry)
                 const isRelated = strictMode 
                     ? validPrefixes.some(p => tagLower.startsWith(p))
                     : validPrefixes.includes(tagBase);
@@ -363,7 +374,6 @@ class DynamicTagSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.strictRelatedTags = value;
                     await this.plugin.saveSettings();
-                    // Force Sidebar Refresh
                     this.plugin.app.workspace.getLeavesOfType(VIEW_TYPE_DYNAMIC_TAGS).forEach(leaf => {
                         if (leaf.view instanceof DynamicTagsView) leaf.view.updateView();
                     });
