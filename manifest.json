@@ -1,9 +1,9 @@
 {
   "id": "dynamic-tags",
   "name": "Dynamic Tags",
-  "version": "1.7.1",
+  "version": "1.7.1.1",
   "minAppVersion": "1.0.0",
-  "description": "Dynamically strips priority prefixes, formats multi-word tags, and customizes base tag styling. In v1.7.1 added collapsible sidebar sections, grouped related tags by note title, and added Strict Nesting match settings.",
+  "description": "Dynamically strips priority prefixes, formats multi-word tags, and customizes base tag styling. In v1.7.1 added collapsible sidebar sections, grouped related tags by note title, and added Strict Nesting match settings. In v1.7.1.1 fixed a severe DOM focus loop causing collapsible menus to flicker.",
   "author": "Waghmare",
   "authorUrl": "https://github.com/waghmare-sujit",
   "fundingUrl": "https://paypal.me/waghmaresujit",

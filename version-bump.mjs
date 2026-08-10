@@ -9,8 +9,8 @@ const files = [
   'versions.json'
 ];
 
-const currentVersion = '1.7.0';
-const newVersion = '1.7.1';
+const currentVersion = '1.7.1';
+const newVersion = '1.7.1.1';
 
 for (const file of files) {
   const filePath = path.join(process.cwd(), file);
