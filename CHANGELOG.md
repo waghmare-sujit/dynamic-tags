@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.7.1.1] *(Patch)* 2026-06-07
+
+### Bug Fix — DOM Focus Loop
+A severe bug where the DOM focus loop caused collapsible sidebar menus to flicker repeatedly was fixed.
+
 ## [1.7.1] - 2026-06-05
 
 ### Collapsible Sidebar Sections
